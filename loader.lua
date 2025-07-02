@@ -10,7 +10,11 @@ label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 wait(2)
 loading:Destroy()
 
--- 🖥️ GUI POLosan
+-- 🖥️ GUI
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "XPERIA_XAO_GUI"
 
@@ -29,7 +33,6 @@ title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 
--- [+] [-] tombol
 local minimize = Instance.new("TextButton", frame)
 minimize.Text = "-"
 minimize.Size = UDim2.new(0, 30, 0, 30)
@@ -73,14 +76,15 @@ end
 
 function addToggle(name, callback)
 	local state = false
-	addButton(name .. " [OFF]", function()
+	local button = addButton(name .. " [OFF]", function()
 		state = not state
 		callback(state)
-		container:FindFirstChild(name).Text = name .. (state and " [ON]" or " [OFF]")
-	end).Name = name
+		button.Text = name .. (state and " [ON]" or " [OFF]")
+	end)
+	button.Name = name
 end
 
--- ✅ Fitur
+-- ✅ Fitur lengkap:
 addToggle("Speed Hack", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.WalkSpeed = on and 120 or 16 end
@@ -95,7 +99,6 @@ addToggle("ESP Player", function(on)
 	for _, p in pairs(Players:GetPlayers()) do
 		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
 			if on then
-				-- Nama putih
 				if not p.Character.Head:FindFirstChild("ESPName") then
 					local esp = Instance.new("BillboardGui", p.Character.Head)
 					esp.Name = "ESPName"
@@ -107,7 +110,6 @@ addToggle("ESP Player", function(on)
 					txt.BackgroundTransparency = 1
 					txt.TextColor3 = Color3.new(1,1,1)
 				end
-				-- Badan merah
 				if not p.Character:FindFirstChild("XperiaHighlight") then
 					local hl = Instance.new("Highlight", p.Character)
 					hl.Name = "XperiaHighlight"
@@ -123,10 +125,10 @@ addToggle("ESP Player", function(on)
 end)
 
 addToggle("Aimbot", function(on)
+	local RunService = game:GetService("RunService")
+	local Camera = workspace.CurrentCamera
 	if on then
-		local RunService = game:GetService("RunService")
-		local Camera = workspace.CurrentCamera
-		local function getClosestPlayer()
+		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Camera.Value + 1, function()
 			local closest, dist = nil, math.huge
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -138,20 +140,16 @@ addToggle("Aimbot", function(on)
 					end
 				end
 			end
-			return closest
-		end
-		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Camera.Value + 1, function()
-			local target = getClosestPlayer()
-			if target and target.Character and target.Character:FindFirstChild("Head") then
-				Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+			if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+				Camera.CFrame = CFrame.new(Camera.CFrame.Position, closest.Character.Head.Position)
 			end
 		end)
 	else
-		game:GetService("RunService"):UnbindFromRenderStep("XperiaAimbot")
+		RunService:UnbindFromRenderStep("XperiaAimbot")
 	end
 end)
 
--- ✅ Teleport to Sky (klik 1x naik, klik 1x turun)
+-- ✅ Teleport to Sky (klik 1x naik, klik lagi turun)
 local up = false
 addButton("Teleport Sky ↕️", function()
 	local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -165,7 +163,7 @@ addButton("Teleport Sky ↕️", function()
 	end
 end)
 
--- ✅ Minimize
+-- ✅ Minimize / Maximize
 minimize.MouseButton1Click:Connect(function()
 	frame.Visible = false
 	maxBtn.Visible = true
