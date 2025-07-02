@@ -1,6 +1,6 @@
--- LOADER XPERIA XAO FINAL - BY ARMANSYAH112
+-- XPERIA XAO FINAL - By ARMANSYAH112
 
--- Loading Screen
+-- Loading
 local loading = Instance.new("ScreenGui", game.CoreGui)
 local label = Instance.new("TextLabel", loading)
 label.Size = UDim2.new(1, 0, 1, 0)
@@ -12,20 +12,17 @@ label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 wait(2)
 loading:Destroy()
 
--- Setup GUI
+-- GUI Setup
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local TeleportService = game:GetService("TeleportService")
-local TPS = game:GetService("TeleportService")
 local UIS = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "XPERIA_XAO_GUI"
 
 local frame = Instance.new("Frame", gui)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
-frame.Size = UDim2.new(0, 260, 0, 360)
+frame.Size = UDim2.new(0, 260, 0, 250)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Active = true
 frame.Draggable = true
@@ -38,19 +35,22 @@ title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 
--- Tombol minimize pakai logo
-local minimize = Instance.new("ImageButton", frame)
+local minimize = Instance.new("TextButton", frame)
+minimize.Text = "-"
 minimize.Size = UDim2.new(0, 30, 0, 30)
 minimize.Position = UDim2.new(1, -35, 0, 3)
-minimize.Image = "https://files.catbox.moe/rjdyvs.jpg"
-minimize.BackgroundTransparency = 1
+minimize.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+minimize.Font = Enum.Font.GothamBlack
+minimize.TextScaled = true
 
--- Tombol maximize pakai logo
-local maxBtn = Instance.new("ImageButton", gui)
-maxBtn.Image = "https://files.catbox.moe/rjdyvs.jpg"
+local maxBtn = Instance.new("TextButton", gui)
+maxBtn.Text = "+"
 maxBtn.Size = UDim2.new(0, 40, 0, 40)
 maxBtn.Position = UDim2.new(0, 10, 0.85, 0)
-maxBtn.BackgroundTransparency = 1
+maxBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+maxBtn.TextColor3 = Color3.new(1, 1, 1)
+maxBtn.Font = Enum.Font.GothamBlack
+maxBtn.TextScaled = true
 maxBtn.Visible = false
 maxBtn.Draggable = true
 
@@ -79,14 +79,18 @@ end
 
 function addToggle(name, callback)
 	local state = false
-	local button = addButton(name .. " [OFF]", function()
+	local button
+	button = addButton(name .. " [OFF]", function()
 		state = not state
-		button.Text = name .. (state and " [ON]" or " [OFF]")
 		callback(state)
+		if button then
+			button.Text = name .. (state and " [ON]" or " [OFF]")
+		end
 	end)
 end
 
 -- Fitur
+
 addToggle("Speed Hack", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.WalkSpeed = on and 48 or 16 end
@@ -94,7 +98,7 @@ end)
 
 addToggle("Jump Boost", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-	if h then h.JumpPower = on and 160 or 50 end
+	if h then h.JumpPower = on and 1000 or 50 end
 end)
 
 addToggle("ESP Player", function(on)
@@ -143,11 +147,9 @@ addToggle("Aimbot", function(on)
 				end
 			end
 			if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
-				local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-				if root then
-					local target = closest.Character.HumanoidRootPart.Position
-					local dir = (target - root.Position).Unit
-					root.CFrame = CFrame.new(root.Position, root.Position + dir)
+				local char = LocalPlayer.Character
+				if char then
+					char:SetPrimaryPartCFrame(CFrame.new(char.PrimaryPart.Position, closest.Character.HumanoidRootPart.Position))
 				end
 			end
 		end)
@@ -170,25 +172,25 @@ addButton("Teleport Sky", function()
 	end
 end)
 
--- Hop Server (random low pop)
+-- Hop Server
 addButton("Hop Server", function()
-	local Http = game:GetService("HttpService")
+	local HttpService = game:GetService("HttpService")
+	local TeleportService = game:GetService("TeleportService")
 	local PlaceId = game.PlaceId
-	local cursor = ""
-	local found = false
-	while not found do
-		local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&cursor=" .. cursor
-		local res = Http:JSONDecode(game:HttpGet(url))
-		for _, v in pairs(res.data) do
-			if v.playing < 10 then
-				TPS:TeleportToPlaceInstance(PlaceId, v.id)
-				found = true
-				break
-			end
+	local function getServers(cursor)
+		local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+		if cursor then url = url .. "&cursor=" .. cursor end
+		local success, response = pcall(function()
+			return game:HttpGet(url)
+		end)
+		if success then
+			return HttpService:JSONDecode(response)
 		end
-		if res.nextPageCursor then
-			cursor = res.nextPageCursor
-		else
+	end
+	local servers = getServers()
+	for _, server in pairs(servers.data) do
+		if server.playing < server.maxPlayers and server.id ~= game.JobId then
+			TeleportService:TeleportToPlaceInstance(PlaceId, server.id, LocalPlayer)
 			break
 		end
 	end
