@@ -47,9 +47,9 @@ minimize.BackgroundTransparency = 1
 
 -- Tombol maximize pakai logo
 local maxBtn = Instance.new("ImageButton", gui)
+maxBtn.Image = "https://files.catbox.moe/rjdyvs.jpg"
 maxBtn.Size = UDim2.new(0, 40, 0, 40)
 maxBtn.Position = UDim2.new(0, 10, 0.85, 0)
-maxBtn.Image = "https://files.catbox.moe/rjdyvs.jpg"
 maxBtn.BackgroundTransparency = 1
 maxBtn.Visible = false
 maxBtn.Draggable = true
