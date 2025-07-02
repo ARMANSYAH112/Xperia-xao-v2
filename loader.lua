@@ -12,19 +12,20 @@ label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 wait(2)
 loading:Destroy()
 
--- GUI Setup
+-- Setup GUI
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+local TPS = game:GetService("TeleportService")
 local UIS = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
-local TPService = game:GetService("TeleportService")
 
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "XPERIA_XAO_GUI"
 
 local frame = Instance.new("Frame", gui)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
-frame.Size = UDim2.new(0, 260, 0, 400)
+frame.Size = UDim2.new(0, 260, 0, 360)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Active = true
 frame.Draggable = true
@@ -37,22 +38,19 @@ title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 
-local minimize = Instance.new("TextButton", frame)
-minimize.Text = "-"
+-- Tombol minimize pakai logo
+local minimize = Instance.new("ImageButton", frame)
 minimize.Size = UDim2.new(0, 30, 0, 30)
 minimize.Position = UDim2.new(1, -35, 0, 3)
-minimize.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-minimize.Font = Enum.Font.GothamBlack
-minimize.TextScaled = true
+minimize.Image = "https://files.catbox.moe/rjdyvs.jpg"
+minimize.BackgroundTransparency = 1
 
-local maxBtn = Instance.new("TextButton", gui)
-maxBtn.Text = "+"
+-- Tombol maximize pakai logo
+local maxBtn = Instance.new("ImageButton", gui)
 maxBtn.Size = UDim2.new(0, 40, 0, 40)
 maxBtn.Position = UDim2.new(0, 10, 0.85, 0)
-maxBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-maxBtn.TextColor3 = Color3.new(1, 1, 1)
-maxBtn.Font = Enum.Font.GothamBlack
-maxBtn.TextScaled = true
+maxBtn.Image = "https://files.catbox.moe/rjdyvs.jpg"
+maxBtn.BackgroundTransparency = 1
 maxBtn.Visible = false
 maxBtn.Draggable = true
 
@@ -81,33 +79,24 @@ end
 
 function addToggle(name, callback)
 	local state = false
-	local button
-	local function update()
-		pcall(function()
-			callback(state)
-			button.Text = name .. (state and " [ON]" or " [OFF]")
-		end)
-	end
-	button = addButton(name .. " [OFF]", function()
+	local button = addButton(name .. " [OFF]", function()
 		state = not state
-		update()
+		button.Text = name .. (state and " [ON]" or " [OFF]")
+		callback(state)
 	end)
-	update()
 end
 
--- Speed Hack
+-- Fitur
 addToggle("Speed Hack", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-	if h then h.WalkSpeed = on and 120 or 16 end
+	if h then h.WalkSpeed = on and 48 or 16 end
 end)
 
--- Jump Boost
 addToggle("Jump Boost", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-	if h then h.JumpPower = on and 300 or 50 end
+	if h then h.JumpPower = on and 160 or 50 end
 end)
 
--- ESP Player
 addToggle("ESP Player", function(on)
 	for _, p in pairs(Players:GetPlayers()) do
 		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
@@ -137,15 +126,16 @@ addToggle("ESP Player", function(on)
 	end
 end)
 
--- Aimbot: Karakter hadap ke musuh terdekat
 addToggle("Aimbot", function(on)
 	local RunService = game:GetService("RunService")
+	local Camera = workspace.CurrentCamera
 	if on then
-		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Input.Value, function()
+		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Camera.Value + 1, function()
 			local closest, dist = nil, math.huge
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					local diff = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+					local pos = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+					local diff = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
 					if diff < dist then
 						dist = diff
 						closest = player
@@ -153,9 +143,11 @@ addToggle("Aimbot", function(on)
 				end
 			end
 			if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
-				local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-				if hrp then
-					hrp.CFrame = CFrame.lookAt(hrp.Position, closest.Character.HumanoidRootPart.Position)
+				local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if root then
+					local target = closest.Character.HumanoidRootPart.Position
+					local dir = (target - root.Position).Unit
+					root.CFrame = CFrame.new(root.Position, root.Position + dir)
 				end
 			end
 		end)
@@ -164,7 +156,7 @@ addToggle("Aimbot", function(on)
 	end
 end)
 
--- Teleport to Sky (toggle naik turun)
+-- Teleport Sky
 local up = false
 addButton("Teleport Sky", function()
 	local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -178,26 +170,31 @@ addButton("Teleport Sky", function()
 	end
 end)
 
--- Hop Server
+-- Hop Server (random low pop)
 addButton("Hop Server", function()
+	local Http = game:GetService("HttpService")
 	local PlaceId = game.PlaceId
-	local bestServer = nil
-	local bestScore = 0
-	local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
-	for _, s in pairs(servers) do
-		if s.playing < s.maxPlayers and s.id ~= game.JobId then
-			if s.playing > bestScore then
-				bestScore = s.playing
-				bestServer = s.id
+	local cursor = ""
+	local found = false
+	while not found do
+		local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&cursor=" .. cursor
+		local res = Http:JSONDecode(game:HttpGet(url))
+		for _, v in pairs(res.data) do
+			if v.playing < 10 then
+				TPS:TeleportToPlaceInstance(PlaceId, v.id)
+				found = true
+				break
 			end
 		end
-	end
-	if bestServer then
-		TPService:TeleportToPlaceInstance(PlaceId, bestServer)
+		if res.nextPageCursor then
+			cursor = res.nextPageCursor
+		else
+			break
+		end
 	end
 end)
 
--- Minimize & Maximize
+-- Minimize
 minimize.MouseButton1Click:Connect(function()
 	frame.Visible = false
 	maxBtn.Visible = true
