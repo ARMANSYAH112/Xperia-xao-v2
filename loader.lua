@@ -1,4 +1,6 @@
--- 🔷 LOADING SCREEN
+-- LOADER XPERIA XAO FINAL - BY ARMANSYAH112
+
+-- Loading Screen
 local loading = Instance.new("ScreenGui", game.CoreGui)
 local label = Instance.new("TextLabel", loading)
 label.Size = UDim2.new(1, 0, 1, 0)
@@ -10,7 +12,7 @@ label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 wait(2)
 loading:Destroy()
 
--- 🖥️ GUI
+-- Setup GUI
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -72,6 +74,7 @@ function addButton(name, callback)
 	corner.CornerRadius = UDim.new(0, 8)
 	btn.MouseButton1Click:Connect(callback)
 	y = y + 34
+	return btn
 end
 
 function addToggle(name, callback)
@@ -84,7 +87,7 @@ function addToggle(name, callback)
 	button.Name = name
 end
 
--- ✅ Fitur lengkap:
+-- Fitur
 addToggle("Speed Hack", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.WalkSpeed = on and 120 or 16 end
@@ -149,9 +152,9 @@ addToggle("Aimbot", function(on)
 	end
 end)
 
--- ✅ Teleport to Sky (klik 1x naik, klik lagi turun)
+-- Teleport Sky
 local up = false
-addButton("Teleport Sky ↕️", function()
+addButton("Teleport Sky ", function()
 	local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 	if root then
 		if not up then
@@ -163,7 +166,7 @@ addButton("Teleport Sky ↕️", function()
 	end
 end)
 
--- ✅ Minimize / Maximize
+-- Minimize
 minimize.MouseButton1Click:Connect(function()
 	frame.Visible = false
 	maxBtn.Visible = true
