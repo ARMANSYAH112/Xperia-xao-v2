@@ -4,7 +4,7 @@
 local loading = Instance.new("ScreenGui", game.CoreGui)
 local label = Instance.new("TextLabel", loading)
 label.Size = UDim2.new(1, 0, 1, 0)
-label.Text = "🔷 XPERIA XAO by ARMANSYAH112"
+label.Text = "🔷 XPERIA XAO by ARMANSYAH"
 label.Font = Enum.Font.GothamBlack
 label.TextScaled = true
 label.TextColor3 = Color3.fromRGB(0, 255, 255)
@@ -16,6 +16,8 @@ loading:Destroy()
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local TPService = game:GetService("TeleportService")
 
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "XPERIA_XAO_GUI"
@@ -28,7 +30,7 @@ frame.Active = true
 frame.Draggable = true
 
 local title = Instance.new("TextLabel", frame)
-title.Text = "XPERIA XAO - ARMANSYAH"
+title.Text = "XPERIA XAO"
 title.Size = UDim2.new(1, 0, 0, 35)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -87,17 +89,19 @@ function addToggle(name, callback)
 	button.Name = name
 end
 
--- Fitur
+-- Speed Hack
 addToggle("Speed Hack", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.WalkSpeed = on and 120 or 16 end
 end)
 
+-- Jump Boost
 addToggle("Jump Boost", function(on)
 	local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.JumpPower = on and 300 or 50 end
 end)
 
+-- ESP Player
 addToggle("ESP Player", function(on)
 	for _, p in pairs(Players:GetPlayers()) do
 		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
@@ -127,24 +131,26 @@ addToggle("ESP Player", function(on)
 	end
 end)
 
+-- Aimbot (Karakter hadap ke musuh)
 addToggle("Aimbot", function(on)
 	local RunService = game:GetService("RunService")
-	local Camera = workspace.CurrentCamera
 	if on then
-		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Camera.Value + 1, function()
+		RunService:BindToRenderStep("XperiaAimbot", Enum.RenderPriority.Input.Value, function()
 			local closest, dist = nil, math.huge
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					local pos = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-					local diff = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
+					local diff = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
 					if diff < dist then
 						dist = diff
 						closest = player
 					end
 				end
 			end
-			if closest and closest.Character and closest.Character:FindFirstChild("Head") then
-				Camera.CFrame = CFrame.new(Camera.CFrame.Position, closest.Character.Head.Position)
+			if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					hrp.CFrame = CFrame.lookAt(hrp.Position, closest.Character.HumanoidRootPart.Position)
+				end
 			end
 		end)
 	else
@@ -152,9 +158,9 @@ addToggle("Aimbot", function(on)
 	end
 end)
 
--- Teleport Sky
+-- Teleport Sky Toggle
 local up = false
-addButton("Teleport Sky ", function()
+addButton("Teleport Sky", function()
 	local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 	if root then
 		if not up then
@@ -166,7 +172,21 @@ addButton("Teleport Sky ", function()
 	end
 end)
 
--- Minimize
+-- Hop Server (tap)
+addButton("Hop Server", function()
+	local PlaceId = game.PlaceId
+	local found = false
+	local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
+	for _, s in pairs(servers) do
+		if s.playing < s.maxPlayers and s.id ~= game.JobId then
+			TPService:TeleportToPlaceInstance(PlaceId, s.id)
+			found = true
+			break
+		end
+	end
+end)
+
+-- Minimize & Maximize
 minimize.MouseButton1Click:Connect(function()
 	frame.Visible = false
 	maxBtn.Visible = true
