@@ -4,7 +4,7 @@
 local loading = Instance.new("ScreenGui", game.CoreGui)
 local label = Instance.new("TextLabel", loading)
 label.Size = UDim2.new(1, 0, 1, 0)
-label.Text = "🔷 XPERIA XAO by ARMANSYAH"
+label.Text = "🔷 XPERIA XAO by ArmansyahOffc"
 label.Font = Enum.Font.GothamBlack
 label.TextScaled = true
 label.TextColor3 = Color3.fromRGB(0, 255, 255)
@@ -12,7 +12,7 @@ label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 wait(2)
 loading:Destroy()
 
--- Setup GUI
+-- GUI Setup
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -81,12 +81,18 @@ end
 
 function addToggle(name, callback)
 	local state = false
-	local button = addButton(name .. " [OFF]", function()
+	local button
+	local function update()
+		pcall(function()
+			callback(state)
+			button.Text = name .. (state and " [ON]" or " [OFF]")
+		end)
+	end
+	button = addButton(name .. " [OFF]", function()
 		state = not state
-		callback(state)
-		button.Text = name .. (state and " [ON]" or " [OFF]")
+		update()
 	end)
-	button.Name = name
+	update()
 end
 
 -- Speed Hack
@@ -131,7 +137,7 @@ addToggle("ESP Player", function(on)
 	end
 end)
 
--- Aimbot (Karakter hadap ke musuh)
+-- Aimbot: Karakter hadap ke musuh terdekat
 addToggle("Aimbot", function(on)
 	local RunService = game:GetService("RunService")
 	if on then
@@ -158,7 +164,7 @@ addToggle("Aimbot", function(on)
 	end
 end)
 
--- Teleport Sky Toggle
+-- Teleport to Sky (toggle naik turun)
 local up = false
 addButton("Teleport Sky", function()
 	local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -172,17 +178,22 @@ addButton("Teleport Sky", function()
 	end
 end)
 
--- Hop Server (tap)
+-- Hop Server
 addButton("Hop Server", function()
 	local PlaceId = game.PlaceId
-	local found = false
+	local bestServer = nil
+	local bestScore = 0
 	local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
 	for _, s in pairs(servers) do
 		if s.playing < s.maxPlayers and s.id ~= game.JobId then
-			TPService:TeleportToPlaceInstance(PlaceId, s.id)
-			found = true
-			break
+			if s.playing > bestScore then
+				bestScore = s.playing
+				bestServer = s.id
+			end
 		end
+	end
+	if bestServer then
+		TPService:TeleportToPlaceInstance(PlaceId, bestServer)
 	end
 end)
 
