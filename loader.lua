@@ -2,7 +2,7 @@
 local loading = Instance.new("ScreenGui", game.CoreGui)
 local label = Instance.new("TextLabel", loading)
 label.Size = UDim2.new(1, 0, 1, 0)
-label.Text = "🔷 XPERIA XAO by ARMANSYAH112"
+label.Text = "🔷 XPERIA XAO by ARMANSYAH"
 label.Font = Enum.Font.GothamBlack
 label.TextScaled = true
 label.TextColor3 = Color3.fromRGB(0, 255, 255)
